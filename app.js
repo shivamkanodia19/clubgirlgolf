@@ -48,7 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-add-sku').addEventListener('click', openModal);
 
   // Premium animation systems
-  initCustomCursor();
   initScrollProgress();
   initParallax();
   initMagneticButtons();
@@ -60,46 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // ═══════════════════════════════════════
 // ANIMATION SYSTEMS
 // ═══════════════════════════════════════
-
-// ── Custom Cursor ──
-function initCustomCursor() {
-  const cursor = document.getElementById('custom-cursor');
-  if (!cursor) return;
-  // Only on devices with hover capability
-  if (!window.matchMedia('(hover: hover)').matches) return;
-
-  let mouseX = 0, mouseY = 0;
-  let cursorX = 0, cursorY = 0;
-
-  document.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-    cursor.classList.add('visible');
-  });
-
-  document.addEventListener('mousedown', () => cursor.classList.add('clicking'));
-  document.addEventListener('mouseup', () => cursor.classList.remove('clicking'));
-  document.addEventListener('mouseleave', () => cursor.classList.remove('visible'));
-
-  // Detect interactive elements for hover state
-  document.addEventListener('mouseover', (e) => {
-    const interactive = e.target.closest('button, a, input, select, label, .runway-row, .accordion-toggle, .btn-delete-sku');
-    if (interactive) cursor.classList.add('hovering');
-    else cursor.classList.remove('hovering');
-  });
-
-  // Smooth cursor follow with spring physics
-  function animateCursor() {
-    const dx = mouseX - cursorX;
-    const dy = mouseY - cursorY;
-    cursorX += dx * 0.15;
-    cursorY += dy * 0.15;
-    cursor.style.left = cursorX + 'px';
-    cursor.style.top = cursorY + 'px';
-    requestAnimationFrame(animateCursor);
-  }
-  animateCursor();
-}
 
 // ── Scroll Progress Bar ──
 function initScrollProgress() {

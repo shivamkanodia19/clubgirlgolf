@@ -162,49 +162,6 @@ body {
 }
 
 /* ═══════════════════════════════════════
-   CUSTOM CURSOR
-   ═══════════════════════════════════════ */
-
-.custom-cursor {
-  position: fixed;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--pink);
-  pointer-events: none;
-  z-index: 9999;
-  mix-blend-mode: difference;
-  transform: translate(-50%, -50%);
-  transition: width 0.3s var(--spring), height 0.3s var(--spring),
-              background 0.3s, opacity 0.3s;
-  opacity: 0;
-}
-
-.custom-cursor.visible { opacity: 1; }
-
-.custom-cursor.hovering {
-  width: 44px;
-  height: 44px;
-  background: rgba(232, 62, 140, 0.25);
-  border: 2px solid var(--pink);
-}
-
-.custom-cursor.clicking {
-  width: 12px;
-  height: 12px;
-}
-
-@media (hover: none) and (pointer: coarse) {
-  .custom-cursor { display: none !important; }
-}
-
-@media (hover: hover) {
-  body { cursor: none; }
-  a, button, input, select, label, .runway-row, .accordion-toggle,
-  .cell-editable, .cell-editable-wide, .btn-delete-sku { cursor: none; }
-}
-
-/* ═══════════════════════════════════════
    PARALLAX BACKGROUND BLOBS
    ═══════════════════════════════════════ */
 
