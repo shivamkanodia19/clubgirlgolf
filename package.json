@@ -1,0 +1,19 @@
+{
+  "name": "clubgirlgolf",
+  "version": "2.0.0",
+  "description": "Club Girl Golf — Inventory & Financial Model Dashboard",
+  "scripts": {
+    "dev": "live-server --port=8080 --no-browser",
+    "start": "live-server --port=8080"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shivamkanodia19/clubgirlgolf.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "homepage": "https://github.com/shivamkanodia19/clubgirlgolf#readme",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}

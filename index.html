@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Club Girl Golf — Inventory & Financial Model</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            pink: { DEFAULT: '#E83E8C', light: '#FCE4EC' },
+            plum: '#2E1A2B',
+            offwhite: '#FAF9F7',
+            alertred: '#FF6B6B',
+            success: '#3CB371',
+            warnorange: '#F4A261',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-offwhite text-plum font-sans antialiased">
+
+  <!-- Custom Cursor -->
+  <div class="custom-cursor" id="custom-cursor"></div>
+
+  <!-- Scroll Progress Bar -->
+  <div class="scroll-progress" id="scroll-progress"></div>
+
+  <!-- Parallax Background Blobs -->
+  <div class="parallax-container" id="parallax-container">
+    <div class="parallax-blob blob-1"></div>
+    <div class="parallax-blob blob-2"></div>
+    <div class="parallax-blob blob-3"></div>
+  </div>
+
+  <!-- Toast Notifications Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="fixed inset-0 bg-offwhite z-50 flex flex-col items-center justify-center">
+    <div class="text-center mb-10">
+      <h1 class="font-montserrat text-4xl font-extrabold text-pink loading-logo">CLUB GIRL GOLF</h1>
+      <div class="inline-block w-8 h-8 border-[3px] border-pink-light border-t-pink rounded-full animate-spin mt-5 mb-3"></div>
+      <p class="text-sm text-plum/50 mt-1">Loading inventory model...</p>
+    </div>
+    <!-- Skeleton KPI Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 max-w-[1200px] w-full px-8 skeleton-row">
+      <div class="skeleton-card"><div class="skeleton h-7 w-20 mb-3"></div><div class="skeleton h-4 w-16"></div></div>
+      <div class="skeleton-card"><div class="skeleton h-7 w-20 mb-3"></div><div class="skeleton h-4 w-16"></div></div>
+      <div class="skeleton-card"><div class="skeleton h-7 w-20 mb-3"></div><div class="skeleton h-4 w-16"></div></div>
+      <div class="skeleton-card"><div class="skeleton h-7 w-20 mb-3"></div><div class="skeleton h-4 w-16"></div></div>
+      <div class="skeleton-card"><div class="skeleton h-7 w-20 mb-3"></div><div class="skeleton h-4 w-16"></div></div>
+      <div class="skeleton-card"><div class="skeleton h-7 w-20 mb-3"></div><div class="skeleton h-4 w-16"></div></div>
+    </div>
+  </div>
+
+  <!-- Add SKU Modal -->
+  <div id="add-sku-modal" class="modal-overlay">
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="text-lg font-bold text-plum">Add New SKU</h3>
+        <button id="modal-close" class="text-plum/40 hover:text-plum transition-colors text-xl leading-none" aria-label="Close modal">&times;</button>
+      </div>
+      <form id="add-sku-form" class="space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-plum/70 mb-1">Product Name</label>
+            <input name="name" required class="modal-input" placeholder="e.g. Monarch Steel - Gold">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-plum/70 mb-1">Unit Cost ($)</label>
+            <input name="unitCost" type="number" step="0.01" min="0" required class="modal-input" placeholder="120">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-plum/70 mb-1">DTC Price ($)</label>
+            <input name="dtcPrice" type="number" step="0.01" min="0" required class="modal-input" placeholder="343.99">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-plum/70 mb-1">Wholesale Price ($)</label>
+            <input name="wholesalePrice" type="number" step="0.01" min="0" required class="modal-input" placeholder="275">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-plum/70 mb-1">Lead Time (months)</label>
+            <input name="leadTime" type="number" min="1" max="12" required class="modal-input" value="3">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-plum/70 mb-1">Safety Stock</label>
+            <input name="safetyStock" type="number" min="0" required class="modal-input" placeholder="100">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-plum/70 mb-1">Current Inventory</label>
+            <input name="currentInventory" type="number" min="0" required class="modal-input" placeholder="0">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-plum/70 mb-1">MOQ</label>
+            <input name="moq" type="number" min="1" required class="modal-input" value="50">
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 pt-3">
+          <button type="button" id="modal-cancel" class="px-4 py-2 text-sm font-medium border border-plum/20 rounded-lg text-plum/70 hover:bg-pink-light/40 transition-colors btn-magnetic">Cancel</button>
+          <button type="submit" class="px-5 py-2 text-sm font-semibold bg-pink text-white rounded-lg hover:bg-pink/90 transition-colors btn-magnetic">Add SKU</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="bg-white/80 backdrop-blur-lg border-b border-pink-light/60 header-animated sticky top-0 z-30">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <div>
+        <h1 class="font-montserrat text-2xl sm:text-3xl font-extrabold tracking-tight text-plum">
+          <span class="text-pink">CLUB GIRL GOLF</span>
+        </h1>
+        <p class="text-sm text-plum/60 mt-0.5">Inventory & Financial Model — Interactive Dashboard</p>
+        <p id="persistence-status" class="text-[10px] text-plum/30 mt-0.5"></p>
+      </div>
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+        <button id="btn-add-sku" class="px-3 py-2 text-sm font-semibold bg-pink text-white rounded-lg hover:bg-pink/90 transition-colors btn-magnetic">
+          + Add SKU
+        </button>
+        <button id="btn-reset" class="px-3 py-2 text-sm font-medium border border-plum/20 rounded-lg text-plum/70 hover:bg-pink-light/40 transition-colors btn-magnetic" title="Reset all changes to original Excel data &amp; clear saved edits">
+          Reset to Original
+        </button>
+        <button id="btn-export" class="px-3 py-2 text-sm font-semibold bg-plum text-white rounded-lg hover:bg-plum/90 transition-colors btn-magnetic">
+          Download Excel
+        </button>
+        <label class="px-3 py-2 text-sm font-medium border border-pink rounded-lg text-pink hover:bg-pink-light/40 transition-colors btn-magnetic inline-block">
+          Upload File
+          <input type="file" id="file-upload" accept=".xlsx,.xls" class="hidden">
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- KPI Cards -->
+    <section id="kpi-section" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4"></section>
+
+    <!-- Main Dashboard: 3-column -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6" id="panels-section">
+
+      <!-- Left: Inventory Runway -->
+      <div class="panel anim-ready" id="panel-runway">
+        <div class="px-5 py-4 border-b border-pink-light/40">
+          <h2 class="text-base font-bold text-plum">Inventory Runway</h2>
+          <p class="text-xs text-plum/50 mt-0.5">Current stock vs. daily burn rate</p>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs" id="runway-table">
+            <thead>
+              <tr class="border-b border-pink-light/40 text-left text-plum/60">
+                <th class="px-4 py-2.5 font-semibold">SKU</th>
+                <th class="px-3 py-2.5 font-semibold text-right">Stock</th>
+                <th class="px-3 py-2.5 font-semibold text-right">Daily</th>
+                <th class="px-3 py-2.5 font-semibold text-right">Days</th>
+                <th class="px-3 py-2.5 font-semibold text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody id="runway-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Center: Sawtooth Chart -->
+      <div class="panel anim-ready" id="panel-sawtooth">
+        <div class="px-5 py-4 border-b border-pink-light/40 flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-bold text-plum">Inventory Movement</h2>
+            <p class="text-xs text-plum/50 mt-0.5">Monthly ending inventory (sawtooth)</p>
+          </div>
+          <select id="sawtooth-sku-select" class="text-xs border border-plum/20 rounded-md px-2 py-1 bg-offwhite text-plum font-medium focus:outline-none focus:ring-2 focus:ring-pink/40"></select>
+        </div>
+        <div class="p-4">
+          <canvas id="sawtooth-chart" height="260"></canvas>
+        </div>
+      </div>
+
+      <!-- Right: Revenue Chart -->
+      <div class="panel anim-ready" id="panel-revenue">
+        <div class="px-5 py-4 border-b border-pink-light/40">
+          <h2 class="text-base font-bold text-plum">Revenue Breakdown</h2>
+          <p class="text-xs text-plum/50 mt-0.5">DTC vs. Wholesale by month</p>
+        </div>
+        <div class="p-4">
+          <canvas id="revenue-chart" height="260"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Margin Trend Chart -->
+    <section class="panel anim-ready" id="panel-margin">
+      <div class="px-5 py-4 border-b border-pink-light/40">
+        <h2 class="text-base font-bold text-plum">Gross Margin Trend</h2>
+        <p class="text-xs text-plum/50 mt-0.5">Monthly gross margin percentage</p>
+      </div>
+      <div class="p-4" style="max-height:280px">
+        <canvas id="margin-chart" height="100"></canvas>
+      </div>
+    </section>
+
+    <!-- Accordion: SKU Assumptions -->
+    <section class="panel anim-ready" id="section-assumptions">
+      <button class="accordion-toggle w-full px-5 py-4 flex items-center justify-between text-left border-b border-pink-light/40 hover:bg-pink-light/20 transition-colors" data-target="assumptions-section">
+        <div>
+          <h2 class="text-base font-bold text-plum">SKU Assumptions</h2>
+          <p class="text-xs text-plum/50 mt-0.5">Editable costs, prices, lead times, safety stock, and inventory parameters</p>
+        </div>
+        <svg class="accordion-chevron w-5 h-5 text-plum/40 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </button>
+      <div id="assumptions-section" class="accordion-body">
+        <div class="px-5 py-3 bg-pink-light/20 border-b border-pink-light/40">
+          <span class="text-xs text-plum/60">Edit any cell to update the model. Changes persist across sessions via localStorage.</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs" id="assumptions-table">
+            <thead id="assumptions-head"></thead>
+            <tbody id="assumptions-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Accordion: Demand Forecast -->
+    <section class="panel anim-ready" id="section-demand">
+      <button class="accordion-toggle w-full px-5 py-4 flex items-center justify-between text-left border-b border-pink-light/40 hover:bg-pink-light/20 transition-colors" data-target="demand-section">
+        <div>
+          <h2 class="text-base font-bold text-plum">Demand Forecast</h2>
+          <p class="text-xs text-plum/50 mt-0.5">Editable DTC + Wholesale projections by SKU and month</p>
+        </div>
+        <svg class="accordion-chevron w-5 h-5 text-plum/40 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </button>
+      <div id="demand-section" class="accordion-body">
+        <div class="px-5 py-3 bg-pink-light/20 border-b border-pink-light/40">
+          <span class="text-xs text-plum/60">Blush cells are editable. Changes recalculate the entire model in real time.</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs" id="demand-table">
+            <thead id="demand-head"></thead>
+            <tbody id="demand-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Accordion: Inventory Model -->
+    <section class="panel anim-ready" id="section-inventory">
+      <button class="accordion-toggle w-full px-5 py-4 flex items-center justify-between text-left border-b border-pink-light/40 hover:bg-pink-light/20 transition-colors" data-target="inventory-section">
+        <div>
+          <h2 class="text-base font-bold text-plum">Inventory Model</h2>
+          <p class="text-xs text-plum/50 mt-0.5">Full SKU tracking with lead-time-aware reorder alerts — edit Incoming Shipments</p>
+        </div>
+        <svg class="accordion-chevron w-5 h-5 text-plum/40 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </button>
+      <div id="inventory-section" class="accordion-body">
+        <div class="px-5 py-3 bg-pink-light/20 border-b border-pink-light/40">
+          <span class="text-xs text-plum/60">Edit "Incoming Shipments" to simulate restock orders. All metrics update automatically.</span>
+        </div>
+        <div class="overflow-x-auto">
+          <div id="inventory-tables"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Accordion: Financial Summary -->
+    <section class="panel anim-ready" id="section-financial">
+      <button class="accordion-toggle w-full px-5 py-4 flex items-center justify-between text-left border-b border-pink-light/40 hover:bg-pink-light/20 transition-colors" data-target="financial-section">
+        <div>
+          <h2 class="text-base font-bold text-plum">Financial Summary</h2>
+          <p class="text-xs text-plum/50 mt-0.5">Revenue, COGS, gross profit, margins, and cash flow</p>
+        </div>
+        <svg class="accordion-chevron w-5 h-5 text-plum/40 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </button>
+      <div id="financial-section" class="accordion-body">
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs" id="financial-table">
+            <thead id="financial-head"></thead>
+            <tbody id="financial-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-pink-light/40 mt-10">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between text-xs text-plum/40">
+      <span>Club Girl Golf &copy; 2025 — Inventory Model v3.0</span>
+      <span>Built for investor review. Data sourced from operational model.</span>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
