@@ -291,6 +291,21 @@ function updatePersistenceStatus(hasSaved) {
 }
 
 // ═══════════════════════════════════════
+// ORPHANED DATA CLEANUP
+// ═══════════════════════════════════════
+
+function cleanOrphanedData() {
+  var validSkus = {};
+  state.assumptions.forEach(function(a) { validSkus[a.sku] = true; });
+  [state.dtcSales, state.wholesale, state.shipments, state.totalDemand, state.extendedDemand, state.inventory].forEach(function(obj) {
+    if (!obj) return;
+    Object.keys(obj).forEach(function(key) {
+      if (!validSkus[key]) delete obj[key];
+    });
+  });
+}
+
+// ═══════════════════════════════════════
 // FILE LOADING
 // ═══════════════════════════════════════
 
@@ -427,6 +442,9 @@ function parseWorkbook(data) {
   } else {
     updatePersistenceStatus(false);
   }
+
+  // Clean up orphaned data — remove any SKU keys not in assumptions
+  cleanOrphanedData();
 
   if (!state.assumptions.find(function(a) { return a.sku === selectedSawtoothSku; })) {
     selectedSawtoothSku = state.assumptions[0] ? state.assumptions[0].sku : 'SKU001';
@@ -1198,10 +1216,16 @@ function removeSKU(skuId) {
   if (state.assumptions.length <= 1) return;
   if (!confirm('Remove ' + skuId + '? This cannot be undone.')) return;
 
+  // Remove from assumptions
   state.assumptions = state.assumptions.filter(function(a) { return a.sku !== skuId; });
+
+  // Remove all associated data
   delete state.dtcSales[skuId];
   delete state.wholesale[skuId];
   delete state.shipments[skuId];
+  delete state.totalDemand[skuId];
+  delete state.extendedDemand[skuId];
+  delete state.inventory[skuId];
 
   if (selectedSawtoothSku === skuId) {
     selectedSawtoothSku = state.assumptions[0] ? state.assumptions[0].sku : 'SKU001';

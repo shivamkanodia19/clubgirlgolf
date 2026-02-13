@@ -22,6 +22,7 @@
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
+  cursor: default;
 }
 
 .font-montserrat {
@@ -766,7 +767,5 @@ table th, table td { white-space: nowrap; }
   .kpi-card { padding: 14px 16px; border-radius: 12px; }
   .modal-content { padding: 22px; border-radius: 16px; }
   .toast { font-size: 12px; padding: 10px 14px; }
-  .custom-cursor { display: none !important; }
-  body { cursor: auto !important; }
   .skeleton-row { display: none; }
 }
